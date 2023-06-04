@@ -1,0 +1,48 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  shorteningapi:
+    image: shorteningapi
+    container_name: c_shorteningapi
+    build:
+      context: .
+      dockerfile: Shortening.API/Dockerfile
+    ports:
+      - "61616:61616"
+      - "61617:61617"
+    networks:
+      - appnetwork
+    volumes:
+#      - C:/Users/cihat/%USERPROFILE%/.aspnet/https:/https:ro
+       - ~/.aspnet/https:/https:ro 
+  redis:
+    image: redis
+    container_name: c_appredis
+    build:
+      context: dockerfiles/redis
+    volumes:
+      - ./:/var/lib/redis
+    ports:
+      - "6379:6379"
+    networks:
+      - appnetwork
+  mssql:
+    image: mcr.microsoft.com/mssql/server
+    container_name: c_appmssql
+    user: root
+    hostname: localhost
+    environment:
+      SA_PASSWORD: "314159.Pi"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - msdata:/var/opt/mssql/data
+    networks:
+      - appnetwork   
+volumes:
+  msdata:
+networks:
+  appnetwork: 

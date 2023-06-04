@@ -1,0 +1,5 @@
+FROM mcr.microsoft.com/mssql/server
+ENV SA_PASSWORD=314159.Pi
+ENV ACCEPT_EULA=Y
+
+EXPOSE 1433
