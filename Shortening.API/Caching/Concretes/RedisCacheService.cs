@@ -2,7 +2,6 @@
 using Shortening.API.Caching.Abstracts;
 using Shortening.API.Constants;
 using StackExchange.Redis;
-using System;
 
 namespace Shortening.API.Caching.Concretes
 {

@@ -24,15 +24,19 @@ ShorteningConstants.SHORTENING_DOMAIN_URL = builder.Configuration.GetValue<strin
 CachingConstants.REDIS_URL = builder.Configuration.GetValue<string>("RedisURL");
 
 builder.Services.AddDbContext<ShorteningDbContext>();
+
 builder.Services.AddAutoMapper(typeof(UrlShorteningProfile));
-builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EFUnitOfWork<ShorteningDbContext>));
-builder.Services.AddScoped(typeof(IUrlShorteningService), typeof(UrlShorteningService));
+
+builder.Services.AddScoped<IValidator<CreateUrlShorteningRequestDto>, CreateUrlShorteningValidator>();
+
+builder.Services.AddScoped<IUnitOfWork, EFUnitOfWork<ShorteningDbContext>>();
+
 builder.Services
-    .AddScoped(typeof(IEFRepository<UrlShorteningEntity, ShorteningDbContext>), typeof(EFRepository<UrlShorteningEntity, ShorteningDbContext>));
+    .AddScoped<IEFRepository<UrlShorteningEntity, ShorteningDbContext>, EFRepository<UrlShorteningEntity, ShorteningDbContext>>();
 
-builder.Services.AddScoped(typeof(IValidator<CreateUrlShorteningRequestDto>), typeof(CreateUrlShorteningValidator));
-
+builder.Services.AddScoped<IUrlShorteningService, UrlShorteningService>();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
+
 builder.Services.AddScoped<CahceAdapter>();
 
 builder.Services.AddTransient<ErrorHandlingMiddleware>();
@@ -47,7 +51,6 @@ builder.Host.UseSerilog((hostContext, services, configuration) => {
     configuration
         .WriteTo.File($"{Directory.GetCurrentDirectory()}/logs/serilog-file.txt");
 });
-
 
 // Add services to the container.
 
@@ -68,8 +71,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-
 
 app.UseAuthorization();
 

@@ -1,12 +1,7 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Shortening.API.Dtos.RequestDtos;
-using Shortening.API.Dtos.ResponseDtos;
 using Shortening.API.Services.Abstracts;
-using System.ComponentModel.DataAnnotations;
 
 namespace Shortening.API.Controllers
 {

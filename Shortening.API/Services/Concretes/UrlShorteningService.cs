@@ -1,8 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using Shortening.API.Adapters;
 using Shortening.API.Constants;
 using Shortening.API.Contexts;
@@ -21,7 +18,7 @@ namespace Shortening.API.Services.Concretes
         private readonly IEFRepository<UrlShorteningEntity, ShorteningDbContext> _urlShorteningRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly CahceAdapter _redisCahceAdapter;
+        private readonly CahceAdapter _cahceAdapter;
 
         public UrlShorteningService(IEFRepository<UrlShorteningEntity, ShorteningDbContext> urlShorteningRepository,
             IUnitOfWork unitOfWork, IMapper mapper, CahceAdapter redisCahceAdapter)
@@ -29,14 +26,14 @@ namespace Shortening.API.Services.Concretes
             _urlShorteningRepository = urlShorteningRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _redisCahceAdapter = redisCahceAdapter;
+            _cahceAdapter = redisCahceAdapter;
         }
 
         public async Task<UrlShorteningResponseDto> GetUrlShorteningForAsync(GetUrlShorteningRequestDto requestDto)
         {
             requestDto.ShortenedUrl = CheckShorteningUrl(requestDto.ShortenedUrl, out string code);
 
-            var cachedOriginalUrl = GetCachedOriginalUrl(code);
+            var cachedOriginalUrl = _cahceAdapter.GetCachedOriginalUrl(code);
 
             if (!string.IsNullOrEmpty(cachedOriginalUrl))
             {
@@ -57,7 +54,7 @@ namespace Shortening.API.Services.Concretes
             if(result is not null)
                 CheckShorteningUrl(result.ShortenedUrl, out code);
 
-            CacheOriginalUrl(code, result?.OriginalUrl);
+            _cahceAdapter.CacheOriginalUrl(code, result?.OriginalUrl);
 
             return result;
         }
@@ -98,31 +95,6 @@ namespace Shortening.API.Services.Concretes
                 ? $"{ShorteningConstants.SHORTENING_DOMAIN_URL}{hashedUrl}" : $"{ShorteningConstants.SHORTENING_DOMAIN_URL}/{hashedUrl}"; 
         }
 
-        private string GetCachedOriginalUrl(string shortenedUrl)
-        {
-            var cacheObject = _redisCahceAdapter.GetData<object>(shortenedUrl);
-
-            if (cacheObject is not null)
-            {
-                return ((JObject)cacheObject)["original_url"].ToString();
-            }
-
-            return default;
-        }
-
-        private bool CacheOriginalUrl(string code, string originalUrl)
-        {
-            if(string.IsNullOrWhiteSpace(code) || originalUrl is null) 
-                return false;
-
-            var value = new Dictionary<string, string>
-            {
-                { "original_url", originalUrl }
-            };
-
-            return _redisCahceAdapter.SetData<object>(code, value, DateTimeOffset.Now.AddMinutes(5));
-        }
-
         private string CheckShorteningUrl(string url, out string code)
         {
             if (!string.IsNullOrWhiteSpace(url))
@@ -143,7 +115,6 @@ namespace Shortening.API.Services.Concretes
             }
             else
             {
-
                 code = default;
             }
 

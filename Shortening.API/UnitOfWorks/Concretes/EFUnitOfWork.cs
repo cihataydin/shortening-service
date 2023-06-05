@@ -9,12 +9,10 @@ namespace Shortening.API.UnitOfWorks.Concretes
         private readonly TContext _dbContext;
         public EFUnitOfWork(TContext dbContext)
         {
-
             if (dbContext == null)
                 throw new Exception("database context is null");
 
             _dbContext = dbContext;
-
         }
 
         public async Task Dispose()
